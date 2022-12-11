@@ -1,24 +1,28 @@
 import { ref } from 'vue'
-import { projectFirestore } from '../firebase/config'
+import { projectFirestore } from '@/firebase/config'
 
 const useCollection = (collection) => {
-
   const error = ref(null)
+  const isPending = ref(false)
+  const playlistId = ref(null)
 
   // add a new document
   const addDoc = async (doc) => {
     error.value = null
+    isPending.value = true
 
     try {
-      await projectFirestore.collection(collection).add(doc)
+      const res  = await projectFirestore.collection(collection).add(doc)
+      playlistId.value = res.id
+      isPending.value = false
     }
     catch(err) {
-      console.log(err.message)
-      error.value = 'could not send the message'
+      isPending.value = false
+      error.value = err.message
     }
   }
 
-  return { error, addDoc }
+  return { error, addDoc, isPending, playlistId }
 
 }
 

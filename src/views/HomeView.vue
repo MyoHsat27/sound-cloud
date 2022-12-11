@@ -1,18 +1,24 @@
 <template>
   <div class="home">
-    <img alt="Vue logo" src="../assets/logo.png">
-    <HelloWorld msg="Welcome to Your Vue.js App"/>
+    <div v-if="error" class="error">Could not fetch data</div>
+    <div v-if="documents">
+      <ListviewComponent :playlists="documents"></ListviewComponent>
+    </div>
   </div>
 </template>
 
 <script>
-// @ is an alias to /src
-import HelloWorld from '@/components/HelloWorld.vue'
+import getCollection from "@/mixins/getCollection";
+import ListviewComponent from "@/components/ListviewComponent";
 
 export default {
   name: 'HomeView',
-  components: {
-    HelloWorld
+  components: {ListviewComponent},
+
+  setup() {
+    const {error, documents} = getCollection('playlists')
+    return {error, documents}
   }
+
 }
 </script>
