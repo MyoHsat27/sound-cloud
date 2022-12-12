@@ -20,7 +20,7 @@ const useStorage = (path) => {
             url.value = await res.ref.getDownloadURL()
             isPending.value = false
         } catch (err) {
-            error.value = err.message
+            error.value = "Could not upload the Image"
             isPending.value = false
         }
     }
@@ -32,13 +32,28 @@ const useStorage = (path) => {
             error.value = null
             await storageRef.delete()
         } catch(err) {
-            console.log(err.message)
             isPending.value = false
-            error.value = err.message
+            error.value = "Could not delete the Image"
         }
     }
 
-    return {error, url, filePath,  uploadImage, isPending, deleteImage}
+    const uploadSong = async (file) => {
+        isPending.value = true
+        filePath.value = `${path}/${user.value.uid}/${file.name}`
+        const storageRef = projectStorage.ref(filePath.value)
+        try {
+            error.value = null
+            const res = await storageRef.put(file)
+            url.value = await res.ref.getDownloadURL()
+            isPending.value = false
+        } catch (err) {
+            error.value = "Could not upload the song"
+            isPending.value = false
+        }
+    }
+
+
+    return {error, url, filePath,  uploadImage, isPending, deleteImage, uploadSong}
 }
 
 export default useStorage

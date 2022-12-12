@@ -6,7 +6,8 @@
       <h4>Add a New Song</h4>
       <input type="text" placeholder="Song Title" required v-model="title">
       <input type="text" placeholder="Artist" required v-model="artist">
-      <div v-if="error">{{error}}</div>
+      <div v-if="error || fileError || songUploadError" class="error">{{error}} {{fileError}} {{songUploadError}}</div>
+      <input type="file" @change="handleChange">
       <button v-if="!isPending">Add</button>
       <button v-else disabled>Loading</button>
     </form>
@@ -17,32 +18,61 @@
 import {ref} from "vue";
 import {v4 as uuidv4} from "uuid";
 import useDocument from "@/mixins/useDocument";
+import useStorage from "@/mixins/useStorage";
 export default {
   name: "AddSong",
   props: ["playlist"],
   setup(props) {
     const title = ref("")
     const artist = ref("")
+    const songFile = ref(null)
     const showForm = ref(false)
-    const {error, isPending, updateDoc} = useDocument('playlists', props.playlist.id)
+    const isPending = ref(false)
+    const {error : songUploadError, url, filePath, uploadSong} = useStorage("songs")
+    const {error, updateDoc} = useDocument('playlists', props.playlist.id)
 
     const handleSubmit = async () => {
-      const newSong = {
-        title: title.value,
-        artist: artist.value,
-        id : uuidv4()
+      if (songFile.value) {
+        isPending.value = true
+        await uploadSong(songFile.value)
+        if (!songUploadError.value) {
+          const newSong = {
+            title: title.value,
+            artist: artist.value,
+            id : uuidv4(),
+            songUrl : url.value,
+            filePath : filePath.value,
+            fileName : songFile.value.name
+          }
+          await updateDoc({
+            songs: [...props.playlist.songs, newSong]
+          })
+          if (!error.value) {
+            title.value = ""
+            artist.value = ""
+            songFile.value = null
+            isPending.value = false
+          }
+        }
       }
-      await updateDoc({
-        songs: [...props.playlist.songs, newSong]
-      })
-      if (!error.value) {
-        title.value = ""
-        artist.value = ""
+    }
+
+    // Get upload File
+    const fileError = ref(null)
+    const types = ["audio/mpeg"]
+    const handleChange = (e) => {
+      const selected = e.target.files[0]
+      if (selected && types.includes(selected.type)) {
+        songFile.value = selected
+        fileError.value = null
+      } else {
+        fileError.value = "Please select song file (only .mp3)"
+        songFile.value = error
       }
     }
 
 
-    return {title, artist, showForm, handleSubmit, error, isPending}
+    return {title, artist, showForm, handleSubmit, error, isPending, handleChange, fileError, songUploadError}
   }
 }
 </script>

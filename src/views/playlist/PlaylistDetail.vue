@@ -23,9 +23,13 @@
             <h3>{{song.title}}</h3>
             <p>{{song.artist}}</p>
           </div>
-          <div v-if="deleteSongError">{{deleteSongError}}</div>
-          <button v-if="ownership" class="song-delete-btn btn-link" @click="deleteSong(song.id)">Delete</button>
-        </div>
+          <div v-if="deleteSongError" class="error">{{deleteSongError}}</div>
+          <div class="btn-container">
+            <button disabled v-if="isDownloading">Downloading</button>
+            <button class="song-delete-btn btn-link" @click="singleDownload(song.songUrl, song.fileName)">Download</button>
+            <button v-if="ownership" class="song-delete-btn btn-link" @click="deleteSong(song.id)">Delete</button>
+          </div>
+          </div>
       </template>
       <AddSong v-if="ownership" :playlist="playlist"></AddSong>
     </div>
@@ -81,8 +85,24 @@ export default {
       await updateDoc({songs})
     }
 
+    // Download Song
+    const isDownloading = ref(false)
+    const singleDownload = async (url, name) => {
+      const aTag = document.createElement("a")
+      aTag.setAttribute("download", name);
+      aTag.href = url
+      aTag.setAttribute('target', '_blank');
+      aTag.click()
+    }
 
-    return {loadError, playlist, ownership, deleteError, imageDeleteError, isPending, handlePopup, isOpen, handleDelete, deleteSong,deleteSongError}
+    return {
+      loadError, playlist, ownership,
+      deleteError, imageDeleteError, isPending,
+      handlePopup, isOpen,
+      handleDelete, deleteSong, deleteSongError,
+      singleDownload, isDownloading
+
+    }
 
   }
 }
@@ -158,6 +178,10 @@ export default {
   align-items: center;
   border-bottom: 1px dashed #dbdbdb;
   margin-bottom: 20px;
+}
+.btn-container {
+  display: flex;
+  flex-direction: column;
 }
 .song-delete-btn {
   width: 100px;
