@@ -59,9 +59,10 @@ export default {
 
     // Get upload File
     const fileError = ref(null)
-    const types = ["audio/mpeg"]
+    const types = ["audio/mpeg", "audio/x-m4a"]
     const handleChange = (e) => {
       const selected = e.target.files[0]
+      console.log(selected.type)
       if (selected && types.includes(selected.type)) {
         songFile.value = selected
         fileError.value = null

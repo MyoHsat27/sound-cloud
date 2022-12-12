@@ -52,8 +52,20 @@ const useStorage = (path) => {
         }
     }
 
+    const deleteStorageSong = async (path) => {
+        isPending.value = true
+        const storageRef =  projectStorage.ref(path)
+        try {
+            error.value = null
+            await storageRef.delete()
+        } catch(err) {
+            isPending.value = false
+            error.value = "Could not delete the song"
+        }
+    }
 
-    return {error, url, filePath,  uploadImage, isPending, deleteImage, uploadSong}
+
+    return {error, url, filePath,  uploadImage, isPending, deleteImage, uploadSong, deleteStorageSong}
 }
 
 export default useStorage

@@ -27,7 +27,7 @@
           <div class="btn-container">
             <button disabled v-if="isDownloading">Downloading</button>
             <button class="song-delete-btn btn-link" @click="singleDownload(song.songUrl, song.fileName)">Download</button>
-            <button v-if="ownership" class="song-delete-btn btn-link" @click="deleteSong(song.id)">Delete</button>
+            <button v-if="ownership" class="song-delete-btn btn-link" @click="deleteSong(song.id, song.filePath)">Delete</button>
           </div>
           </div>
       </template>
@@ -64,6 +64,7 @@ export default {
     const {error : deleteError, deleteDoc} = useDocument('playlists', props.id)
     // Delete Playlist Cover
     const {error : imageDeleteError, deleteImage, isPending} = useStorage()
+    const { deleteStorageSong } = useStorage()
     const isOpen = ref(false)
     const router = useRouter()
     const handlePopup =  () => {
@@ -80,9 +81,10 @@ export default {
 
     // Delete Song
     const {error: deleteSongError,updateDoc} = useDocument("playlists", props.id)
-    const deleteSong = async (id) => {
+    const deleteSong = async (id, filePath) => {
       const songs = playlist.value.songs.filter((song) => song.id !== id)
       await updateDoc({songs})
+      await deleteStorageSong(filePath)
     }
 
     // Download Song
